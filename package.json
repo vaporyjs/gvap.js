@@ -1,7 +1,8 @@
 {
-  "name": "geth",
+  "name": "gvap",
+  "namespace": "vaporyjs",
   "version": "0.4.0",
-  "description": "Start and stop geth from Node.js",
+  "description": "Start and stop gvap from Node.js",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
@@ -9,25 +10,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ethereumjs/geth.js.git"
+    "url": "git+https://github.com/vaporyjs/gvap.js.git"
   },
   "keywords": [
-    "geth",
-    "ethereum",
+    "gvap",
+    "vapory",
     "spawn",
     "child process"
   ],
   "author": "Jack Peterson <jack@tinybike.net>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ethereumjs/geth.js/issues"
+    "url": "https://github.com/vaporyjs/gvap.js/issues"
   },
-  "homepage": "https://github.com/ethereumjs/geth.js#readme",
+  "homepage": "https://github.com/vaporyjs/gvap.js#readme",
   "devDependencies": {
     "async": "^1.5.0",
     "chai": "^3.4.0",
     "coveralls": "^2.11.4",
-    "ethrpc": "^2.2.4",
+    "vaprpc": "^5.0.1",
     "istanbul": "^0.4.0",
     "mocha": "^2.3.3"
   }

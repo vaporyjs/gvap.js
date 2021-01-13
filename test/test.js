@@ -3,11 +3,11 @@
 var async = require("async");
 var join = require("path").join;
 var assert = require("chai").assert;
-var ethrpc = require("ethrpc");
-var geth = require("../");
-geth.debug = false;
+var vaprpc = require("vaprpc");
+var gvap = require("../");
+gvap.debug = false;
 
-var SYMLINK = join(process.env.HOME, "ethlink");
+var SYMLINK = join(process.env.HOME, "vaplink");
 var COINBASE = {
     "10101": "0x05ae1d0ca6206c6168b42efcd1fbe0ed144e821b",
     "7": "0x05ae1d0ca6206c6168b42efcd1fbe0ed144e821b"
@@ -127,7 +127,7 @@ if (!process.env.CONTINUOUS_INTEGRATION) {
         port: 30304,
         rpcport: 8547,
         unlock: COINBASE["10101"],
-        etherbase: COINBASE["10101"]
+        vaporbase: COINBASE["10101"]
     };
     options["network 10101: unlocked/flags"] = {
         flags: {
@@ -135,7 +135,7 @@ if (!process.env.CONTINUOUS_INTEGRATION) {
             port: 30304,
             rpcport: 8547,
             unlock: COINBASE["10101"],
-            etherbase: COINBASE["10101"]
+            vaporbase: COINBASE["10101"]
         }
     };
     options["network 10101: account/symlink/flags"] = {
@@ -154,7 +154,7 @@ if (!process.env.CONTINUOUS_INTEGRATION) {
         port: 30304,
         rpcport: 8547,
         unlock: COINBASE["7"],
-        etherbase: COINBASE["7"],
+        vaporbase: COINBASE["7"],
         bootnodes: BOOTNODES
     };
     options["network 7: unlocked/flags"] = {
@@ -163,7 +163,7 @@ if (!process.env.CONTINUOUS_INTEGRATION) {
             port: 30304,
             rpcport: 8547,
             unlock: COINBASE["7"],
-            etherbase: COINBASE["7"],
+            vaporbase: COINBASE["7"],
             bootnodes: BOOTNODES
         }
     };
@@ -184,7 +184,7 @@ var PROTOCOL_VERSION = "0x3f";
 
 function runtests(options) {
 
-    describe("ethrpc commands", function () {
+    describe("vaprpc commands", function () {
 
         var requests = 0;
         var network_id = (options.flags) ? options.flags.networkid : options.networkid;
@@ -192,17 +192,17 @@ function runtests(options) {
 
         before(function (done) {
             this.timeout(TIMEOUT);
-            geth.start(options, function (err, spawned) {
-                if (err) return geth.stop(function () { done(err); });
-                if (!spawned) return geth.stop(function () { done(new Error("where's the geth?")); });
-                ethrpc.ipcpath = join(geth.datadir, "geth.ipc");
+            gvap.start(options, function (err, spawned) {
+                if (err) return gvap.stop(function () { done(err); });
+                if (!spawned) return gvap.stop(function () { done(new Error("where's the gvap?")); });
+                vaprpc.ipcpath = join(gvap.datadir, "gvap.ipc");
                 done();
             });
         });
 
         after(function (done) {
             this.timeout(TIMEOUT);
-            geth.stop(done);
+            gvap.stop(done);
         });
 
         describe("broadcast", function () {
@@ -210,7 +210,7 @@ function runtests(options) {
             var test = function (t) {
                 it(JSON.stringify(t.command) + " -> " + t.expected, function (done) {
                     this.timeout(TIMEOUT);
-                    ethrpc.broadcast(t.command, function (res) {
+                    vaprpc.broadcast(t.command, function (res) {
                         if (res.error) return done(res);
                         assert.strictEqual(res, t.expected);
                         done();
@@ -231,7 +231,7 @@ function runtests(options) {
                 command: {
                     id: ++requests,
                     jsonrpc: "2.0",
-                    method: "eth_protocolVersion",
+                    method: "vap_protocolVersion",
                     params: []
                 },
                 expected: PROTOCOL_VERSION
@@ -244,7 +244,7 @@ function runtests(options) {
             var test = function (t) {
                 it(t.node + " -> " + t.listening, function (done) {
                     this.timeout(TIMEOUT);
-                    ethrpc.listening(function (listening) {
+                    vaprpc.listening(function (listening) {
                         assert.strictEqual(listening, t.listening);
                         done();
                     });
@@ -260,7 +260,7 @@ function runtests(options) {
             var test = function (t) {
                 it(t.node + " -> " + t.version, function (done) {
                     this.timeout(TIMEOUT);
-                    ethrpc.version(function (version) {
+                    vaprpc.version(function (version) {
                         if (version.error) return done(version);
                         assert.strictEqual(version, t.version);
                         done();
@@ -272,10 +272,10 @@ function runtests(options) {
 
         });
 
-        describe("Ethereum bindings", function () {
+        describe("Vapory bindings", function () {
 
-            it("eth('protocolVersion')", function (done) {
-                ethrpc.eth("protocolVersion", null, function (res) {
+            it("vap('protocolVersion')", function (done) {
+                vaprpc.vap("protocolVersion", null, function (res) {
                     if (res.error) return done(res);
                     assert.strictEqual(res, PROTOCOL_VERSION);
                     done();
@@ -283,7 +283,7 @@ function runtests(options) {
             });
 
             it("getGasPrice", function (done) {
-                ethrpc.getGasPrice(function (res) {
+                vaprpc.getGasPrice(function (res) {
                     if (res.error) return done(res);
                     assert.isAbove(parseInt(res), 0);
                     done();
@@ -293,7 +293,7 @@ function runtests(options) {
             if (!process.env.CONTINUOUS_INTEGRATION) {
 
                 it("blockNumber", function (done) {
-                    ethrpc.blockNumber(function (res) {
+                    vaprpc.blockNumber(function (res) {
                         if (res.error) return done(res);
                         assert.isAtLeast(parseInt(res), 0);
                         done();
@@ -301,26 +301,26 @@ function runtests(options) {
                 });
 
                 it("balance/getBalance", function (done) {
-                    ethrpc.balance(coinbase, function (res) {
+                    vaprpc.balance(coinbase, function (res) {
                         if (res.error) return done(res);
                         assert.isAtLeast(parseInt(res), 0);
-                        ethrpc.getBalance(coinbase, function (r) {
+                        vaprpc.getBalance(coinbase, function (r) {
                             if (r.error) return done(r);
                             assert.isAtLeast(parseInt(r), 0);
                             assert.strictEqual(r, res);
-                            ethrpc.balance(coinbase, "latest", function (r) {
+                            vaprpc.balance(coinbase, "latest", function (r) {
                                 if (r.error) return done(r);
                                 assert.isAtLeast(parseInt(r), 0);
                                 assert.strictEqual(r, res);
-                                ethrpc.getBalance(coinbase, "latest", function (r) {
+                                vaprpc.getBalance(coinbase, "latest", function (r) {
                                     if (r.error) return done(r);
                                     assert.isAtLeast(parseInt(r), 0);
                                     assert.strictEqual(r, res);
-                                    ethrpc.balance(coinbase, null, function (r) {
+                                    vaprpc.balance(coinbase, null, function (r) {
                                         if (r.error) return done(r);
                                         assert.isAtLeast(parseInt(r), 0);
                                         assert.strictEqual(r, res);
-                                        ethrpc.getBalance(coinbase, null, function (r) {
+                                        vaprpc.getBalance(coinbase, null, function (r) {
                                             if (r.error) return done(r);
                                             assert.isAtLeast(parseInt(r), 0);
                                             assert.strictEqual(r, res);
@@ -334,10 +334,10 @@ function runtests(options) {
                 });
 
                 it("txCount/getTransactionCount", function (done) {
-                    ethrpc.txCount(coinbase, function (res) {
+                    vaprpc.txCount(coinbase, function (res) {
                         if (res.error) return done(res);
                         assert(parseInt(res) >= 0);
-                        ethrpc.pendingTxCount(coinbase, function (res) {
+                        vaprpc.pendingTxCount(coinbase, function (res) {
                             if (res.error) return done(res);
                             assert(parseInt(res) >= 0);
                             done();
@@ -348,7 +348,7 @@ function runtests(options) {
             }
 
             it("peerCount", function (done) {
-                ethrpc.peerCount(function (res) {
+                vaprpc.peerCount(function (res) {
                     if (res.error) return done(res);
                     assert(parseInt(res) >= 0);
                     done();
@@ -356,7 +356,7 @@ function runtests(options) {
             });
 
             it("hashrate", function (done) {
-                ethrpc.hashrate(function (res) {
+                vaprpc.hashrate(function (res) {
                     if (res.error) return done(res);
                     assert(parseInt(res) >= 0);
                     done();
@@ -364,7 +364,7 @@ function runtests(options) {
             });
 
             it("mining", function (done) {
-                ethrpc.mining(function (res) {
+                vaprpc.mining(function (res) {
                     if (res.error) return done(res);
                     assert.isBoolean(res);
                     done();
@@ -372,10 +372,10 @@ function runtests(options) {
             });
 
             it("clientVersion", function (done) {
-                ethrpc.clientVersion(function (res) {
+                vaprpc.clientVersion(function (res) {
                     if (res.error) return done(res);
                     assert.isString(res);
-                    assert.strictEqual(res.split('/')[0], "Geth");
+                    assert.strictEqual(res.split('/')[0], "Gvap");
                     done();
                 });
             });
@@ -388,27 +388,27 @@ function runtests(options) {
 
             var test = function (t) {
                 var label = (t.label) ? "'" + t.label + "'" : "";
-                it("geth.stderr(" + label + ")", function (done) {
+                it("gvap.stderr(" + label + ")", function (done) {
                     this.timeout(TIMEOUT);
-                    geth.stop(function () {
-                        geth.start(options, {
+                    gvap.stop(function () {
+                        gvap.start(options, {
                             stderr: function (data) {
-                                if (geth.debug) process.stdout.write(data);
+                                if (gvap.debug) process.stdout.write(data);
                                 if (data.toString().indexOf("Starting P2P networking") > -1) {
-                                    geth.trigger(null, geth.proc);
+                                    gvap.trigger(null, gvap.proc);
                                 }
                             }
                         }, function (err, spawned) {
                             if (err) {
-                                return geth.stop(function () { done(err); });
+                                return gvap.stop(function () { done(err); });
                             }
                             if (!spawned) {
-                                return geth.stop(function () { done(new Error("where's the geth?")); });
+                                return gvap.stop(function () { done(new Error("where's the gvap?")); });
                             }
-                            geth.stderr(t.label, function (data) {
-                                if (geth.debug) process.stdout.write(data);
+                            gvap.stderr(t.label, function (data) {
+                                if (gvap.debug) process.stdout.write(data);
                                 if (data.toString().indexOf("HTTP endpoint opened") > -1) {
-                                    geth.stop(done);
+                                    gvap.stop(done);
                                 }
                             });
                         });

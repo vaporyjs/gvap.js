@@ -1,5 +1,5 @@
 /**
- * Start and stop geth from Node.js.
+ * Start and stop gvapor from Node.js.
  * @author Jack Peterson (jack@tinybike.net)
  */
 
@@ -43,11 +43,11 @@ module.exports = {
     persist: false,
 
     configure: function (options) {
-        this.bin = options.geth_bin || "geth";
+        this.bin = options.gvapor_bin || "gvapor";
         this.persist = options.persist || false;
         var f = copy(options.flags || options);
         this.network = f.networkid;
-        f.datadir = f.datadir || join(process.env.HOME, ".ethereum-" + f.networkid);
+        f.datadir = f.datadir || join(process.env.HOME, ".vapory-" + f.networkid);
         if (options.symlink) {
             if (fs.existsSync(options.symlink)) fs.unlinkSync(options.symlink);
             fs.symlinkSync(f.datadir, options.symlink);
@@ -66,7 +66,7 @@ module.exports = {
         var password = false;
         if (options.account) {
             this.flags = this.flags.concat([
-                "--etherbase", options.account,
+                "--vaporbase", options.account,
                 "--unlock", options.account,
                 "--password", join(this.datadir, ".password")
             ]);
@@ -161,7 +161,7 @@ module.exports = {
             if (!listeners.close) {
                 listeners.close = function (code) {
                     if (code !== 2 && code !== 0) {
-                        self.trigger(new Error("geth closed with code " + code));
+                        self.trigger(new Error("gvapor closed with code " + code));
                     }
                 };
             }
